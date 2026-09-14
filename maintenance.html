@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Maintenance — LTD RoxWood</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<script>
+// Applique les couleurs de fond du thème custom (bg uniquement, pas l'accent qui est géré par la config maintenance)
+(function(){
+  var savedId=localStorage.getItem("rxw_theme");
+  if(!savedId)return;
+  var t=null;
+  try{var c=localStorage.getItem("rxw_custom_theme_"+savedId);if(c)t=JSON.parse(c);}catch(e){}
+  if(!t)return;
+  // Normalise les clés custom
+  if(t.accent&&!t.ac){t.ac=t.accent;t.ac2=t.accent2||t.accent;t.rgb=t.accentRgb||t.rgb;}
+  var s=document.documentElement.style;
+  // On applique seulement les bg/tx/brd — l'accent reste celui de la config maintenance
+  if(t.bg){s.setProperty("--bg",t.bg);document.documentElement.style.background=t.bg;}
+  if(t.bg2)s.setProperty("--bg2",t.bg2);
+  if(t.bg3)s.setProperty("--bg3",t.bg3);
+  if(t.bg4)s.setProperty("--bg4",t.bg4);
+  if(t.tx)s.setProperty("--tx",t.tx);
+  if(t.tx2)s.setProperty("--tx2",t.tx2);
+  if(t.tx3)s.setProperty("--tx3",t.tx3);
+  if(t.brd)s.setProperty("--brd",t.brd);
+  if(t.brd2)s.setProperty("--brd2",t.brd2);
+  if(t.bgRgb)s.setProperty("--bgRgb",t.bgRgb);
+  if(t.bg2Rgb)s.setProperty("--bg2Rgb",t.bg2Rgb);
+})();
+</script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --bg:#07070a;--bg2:#0b0b0f;--bg3:#101015;--bg4:#14141a;
+  --brd:rgba(255,255,255,0.04);--brd2:rgba(255,255,255,0.08);
+  --tx:#ededf0;--tx2:#52505e;--tx3:#232130;
+  --ac:#d4222a;--ac2:#8a0010;--acD:rgba(212,34,42,0.10);--acRgb:212,34,42;
+  --ok:#22c55e;--r:8px;--rL:14px;--rXL:20px;--sh:0 24px 80px rgba(0,0,0,.85);
+}
+html,body{height:100%;overflow:hidden;}
+body{background:var(--bg);font-family:'Syne',sans-serif;color:var(--tx);-webkit-font-smoothing:antialiased;}
+
+/* AURORA */
+.aurora{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden;}
+.ab{position:absolute;border-radius:50%;filter:blur(120px);}
+.ab:nth-child(1){width:800px;height:600px;background:radial-gradient(ellipse,rgba(212,34,42,.14),transparent 70%);top:-250px;left:-250px;animation:a1 28s ease-in-out infinite;}
+.ab:nth-child(2){width:700px;height:500px;background:radial-gradient(ellipse,rgba(138,0,16,.09),transparent 70%);bottom:-200px;right:-200px;animation:a2 34s ease-in-out infinite;}
+.ab:nth-child(3){width:500px;height:400px;background:radial-gradient(ellipse,rgba(212,34,42,.06),transparent 70%);top:40%;left:35%;animation:a3 22s ease-in-out infinite;}
+@keyframes a1{0%,100%{transform:translate(0,0);}50%{transform:translate(80px,60px);}}
+@keyframes a2{0%,100%{transform:translate(0,0);}50%{transform:translate(-80px,-60px);}}
+@keyframes a3{0%,100%{transform:translate(0,0);}50%{transform:translate(50px,-40px);}}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1);}50%{opacity:.3;transform:scale(.7);}}
+@keyframes spinSlow{to{transform:rotate(360deg);}}
+@keyframes progAnim{0%{width:0%;margin-left:0;}50%{width:55%;margin-left:20%;}100%{width:0%;margin-left:100%;}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(18px);}to{opacity:1;transform:translateY(0);}}
+@keyframes fadeIn{from{opacity:0;}to{opacity:1;}}
+
+/* NAV */
+nav{position:fixed;top:0;left:0;right:0;z-index:100;height:56px;display:flex;align-items:center;justify-content:space-between;padding:0 clamp(16px,3vw,40px);background:rgba(7,7,10,.85);backdrop-filter:blur(18px);border-bottom:1px solid var(--brd);}
+.nav-brand{font-family:'Bebas Neue',sans-serif;font-size:.88rem;letter-spacing:.14em;color:var(--tx2);display:flex;align-items:center;gap:10px;}
+.nav-brand em{color:var(--ac);font-style:normal;}
+.nav-badge{font-family:'JetBrains Mono',monospace;font-size:.52rem;font-weight:700;padding:2px 8px;border-radius:4px;background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.25);color:#f59e0b;}
+
+/* MAIN */
+main{position:relative;z-index:1;height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:56px 24px 24px;text-align:center;animation:fadeUp .5s ease both;}
+
+/* ICON */
+.icon-wrap{width:68px;height:68px;border-radius:18px;background:var(--acD);border:1px solid rgba(var(--acRgb),.2);display:flex;align-items:center;justify-content:center;margin:0 auto 24px;flex-shrink:0;}
+.icon-wrap svg{width:28px;height:28px;fill:none;stroke:var(--ac);stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;animation:spinSlow 14s linear infinite;}
+
+/* BADGE */
+.status-badge{display:inline-flex;align-items:center;gap:7px;padding:5px 16px;border-radius:99px;font-family:'JetBrains Mono',monospace;font-size:.58rem;font-weight:700;letter-spacing:.1em;margin-bottom:20px;transition:.3s;}
+.badge-dot{width:6px;height:6px;border-radius:50%;animation:pulse 1.4s ease-in-out infinite;flex-shrink:0;}
+
+/* TITLE */
+.main-title{font-family:'Bebas Neue',sans-serif;font-size:clamp(2.6rem,8vw,5.5rem);letter-spacing:.05em;color:var(--tx);line-height:.95;margin-bottom:10px;}
+.main-sub{font-family:'JetBrains Mono',monospace;font-size:clamp(.58rem,.9vw,.72rem);color:var(--ac);letter-spacing:.14em;text-transform:uppercase;margin-bottom:18px;}
+.main-msg{font-size:clamp(.78rem,1.2vw,.9rem);color:var(--tx2);line-height:1.75;max-width:460px;margin:0 auto 22px;}
+
+/* TAGS */
+.tags-row{display:flex;flex-wrap:wrap;gap:7px;justify-content:center;margin-bottom:20px;}
+.m-tag{display:inline-flex;align-items:center;gap:5px;padding:4px 12px;border-radius:99px;font-family:'JetBrains Mono',monospace;font-size:.56rem;font-weight:700;letter-spacing:.08em;}
+.m-tag-dot{width:5px;height:5px;border-radius:50%;animation:pulse 1.4s ease-in-out infinite;}
+
+/* PROGRESS */
+.progress-wrap{width:min(340px,90vw);height:2px;background:rgba(var(--acRgb),.08);border-radius:2px;overflow:hidden;margin:0 auto 16px;}
+.progress-bar{height:100%;border-radius:2px;animation:progAnim 2.5s ease-in-out infinite;}
+
+/* TIMER */
+.retry-txt{font-family:'JetBrains Mono',monospace;font-size:.64rem;color:var(--tx3);margin-bottom:24px;}
+.retry-txt span{color:var(--ac);}
+
+/* ADMIN LINK */
+.admin-link{display:inline-flex;align-items:center;gap:6px;font-size:.7rem;color:var(--tx3);text-decoration:none;border:1px solid var(--brd);border-radius:var(--r);padding:7px 14px;transition:.15s;margin-top:8px;}
+.admin-link:hover{color:var(--tx2);border-color:var(--brd2);}
+.admin-link svg{width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
+</style>
+</head>
+<body>
+<div class="aurora" id="aurora"><div class="ab"></div><div class="ab"></div><div class="ab"></div></div>
+
+<nav>
+  <div class="nav-brand">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--ac)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+    LTD <em>RoxWood</em>
+    <span class="nav-badge" id="navBadge">MAINTENANCE</span>
+  </div>
+</nav>
+
+<main>
+  <div class="icon-wrap">
+    <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><line x1="12" y1="8" x2="12" y2="12"/><circle cx="12" cy="16" r=".5" fill="var(--ac)"/></svg>
+  </div>
+
+  <div class="status-badge" id="statusBadge">
+    <div class="badge-dot" id="badgeDot"></div>
+    <span id="badgeText">EN MAINTENANCE</span>
+  </div>
+
+  <div class="main-title" id="mainTitle">MAINTENANCE</div>
+  <div class="main-sub" id="mainSub">Mise à jour en cours</div>
+  <div class="main-msg" id="mainMsg">Le site est actuellement en maintenance. Nos équipes travaillent à vous offrir une meilleure expérience. Merci pour votre patience.</div>
+
+  <div class="tags-row" id="tagsRow" style="display:none;"></div>
+
+  <div class="progress-wrap" id="progressWrap">
+    <div class="progress-bar" id="progressBar" style="background:linear-gradient(90deg,var(--ac),var(--ac2));box-shadow:0 0 6px var(--ac);"></div>
+  </div>
+
+  <div class="retry-txt" id="retryTxt" style="display:none;">Vérification automatique dans <span id="retryCountdown">—</span></div>
+
+  <a href="index.html" class="admin-link">
+    <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+    Accès staff
+  </a>
+</main>
+
+<script type="module">
+import { initializeApp, getApps } from 'https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js';
+import { getFirestore, doc, getDoc } from 'https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js';
+
+const FB = {apiKey:"AIzaSyBA0yD6IqPV_x56BkXEfAG9zAF7wnYt_Zc",authDomain:"lscustom-5014d.firebaseapp.com",projectId:"lscustom-5014d",storageBucket:"lscustom-5014d.firebasestorage.app",messagingSenderId:"810475753399",appId:"1:810475753399:web:5aeb4067f810995a60e232",measurementId:"G-L6ELMX9LQX"};
+const app = getApps().length ? getApps()[0] : initializeApp(FB);
+const db  = getFirestore(app);
+
+// ── Helpers couleur ──
+function hexToRgb(h){h=h.replace('#','');if(h.length===3)h=h[0]+h[0]+h[1]+h[1]+h[2]+h[2];const n=parseInt(h,16);return[(n>>16)&255,(n>>8)&255,n&255];}
+function isHex(h){return/^#[0-9a-fA-F]{3,6}$/.test((h||'').trim());}
+
+function applyColor(hex){
+  if(!isHex(hex))return;
+  const [r,g,b]=hexToRgb(hex);
+  document.documentElement.style.setProperty('--ac',hex);
+  document.documentElement.style.setProperty('--acD',`rgba(${r},${g},${b},0.10)`);
+  document.documentElement.style.setProperty('--acRgb',`${r},${g},${b}`);
+  // aurora
+  document.querySelectorAll('.ab').forEach((el,i)=>{
+    if(i===0)el.style.background=`radial-gradient(ellipse,rgba(${r},${g},${b},.14),transparent 70%)`;
+    if(i===1)el.style.background=`radial-gradient(ellipse,rgba(${r},${g},${b},.08),transparent 70%)`;
+  });
+}
+
+function fmtRetry(sec){
+  if(sec<60)return sec+'s';
+  if(sec<3600){const m=Math.floor(sec/60),s=sec%60;return s?m+'m '+s+'s':m+'m';}
+  const h=Math.floor(sec/3600),m=Math.floor((sec%3600)/60);return m?h+'h '+m+'m':h+'h';
+}
+
+// ── Check si admin connecté (pour rediriger) ──
+const uid = localStorage.getItem('currentUser');
+let retryInterval = null;
+
+async function checkIfBackOnline(retrySeconds){
+  try{
+    const s = await getDoc(doc(db,'config','global'));
+    if(s.exists() && !s.data().maintenance){
+      window.location.replace('index.html');
+    }
+  }catch(_){}
+}
+
+// ── Charge la config ──
+async function loadConfig(){
+  try{
+    // Si l'utilisateur est admin, rediriger vers index
+    if(uid){
+      const uSnap = await getDoc(doc(db,'users',uid)).catch(()=>null);
+      if(uSnap && uSnap.exists() && uSnap.data().isAdmin){
+        window.location.replace('index.html');
+        return;
+      }
+    }
+
+    const snap = await getDoc(doc(db,'config','global'));
+    const cfg = snap.exists() ? snap.data() : {};
+
+    // Si maintenance pas active, retourner au site
+    if(!cfg.maintenance){ window.location.replace('index.html'); return; }
+
+    // ── Applique la couleur badge ──
+    const badgeColor = cfg.maintenanceBadgeColor || '#d4222a';
+    if(isHex(badgeColor)) applyColor(badgeColor);
+
+    const [r,g,b] = hexToRgb(badgeColor);
+
+    // Badge
+    const badge = document.getElementById('statusBadge');
+    const dot   = document.getElementById('badgeDot');
+    document.getElementById('badgeText').textContent = cfg.maintenanceBadgeText || 'EN MAINTENANCE';
+    badge.style.background = `rgba(${r},${g},${b},.12)`;
+    badge.style.border      = `1px solid rgba(${r},${g},${b},.35)`;
+    badge.style.color       = badgeColor;
+    dot.style.background    = badgeColor;
+    dot.style.boxShadow     = `0 0 6px ${badgeColor}`;
+    if(cfg.showBadge===false) badge.style.display='none';
+
+    // Textes
+    document.getElementById('mainTitle').textContent = cfg.maintenanceTitle    || 'MAINTENANCE';
+    document.getElementById('mainSub').textContent   = cfg.maintenanceSubtitle || 'Mise à jour en cours';
+    document.getElementById('mainMsg').textContent   = cfg.maintenanceMessage  || '';
+
+    // Progress
+    const pb = document.getElementById('progressBar');
+    pb.style.background  = `linear-gradient(90deg,${badgeColor},rgba(${r},${g},${b},.5))`;
+    pb.style.boxShadow   = `0 0 6px ${badgeColor}`;
+    document.getElementById('progressWrap').style.display = cfg.showProgress===false?'none':'block';
+
+    // Tags
+    const tagsRow = document.getElementById('tagsRow');
+    if(cfg.showTags!==false && cfg.maintenanceTags && cfg.maintenanceTags.length){
+      tagsRow.style.display = 'flex';
+      cfg.maintenanceTags.forEach(t=>{
+        const [tr,tg,tb] = hexToRgb(t.color);
+        const el = document.createElement('div');
+        el.className = 'm-tag';
+        el.style.background = `rgba(${tr},${tg},${tb},.12)`;
+        el.style.border = `1px solid rgba(${tr},${tg},${tb},.35)`;
+        el.style.color  = t.color;
+        el.innerHTML = `<div class="m-tag-dot" style="background:${t.color};box-shadow:0 0 5px ${t.color};"></div>${t.text}`;
+        tagsRow.appendChild(el);
+      });
+    }
+
+    // Aurora
+    if(cfg.showAurora===false) document.getElementById('aurora').style.display='none';
+
+    // Timer
+    const retrySeconds = cfg.retrySeconds || 30;
+    if(cfg.showTimer!==false){
+      const retryEl = document.getElementById('retryTxt');
+      retryEl.style.display = 'block';
+      let countdown = retrySeconds;
+      const updateCountdown = ()=>{
+        document.getElementById('retryCountdown').textContent = fmtRetry(countdown);
+        if(countdown <= 0){
+          countdown = retrySeconds;
+          checkIfBackOnline(retrySeconds);
+        } else { countdown--; }
+      };
+      updateCountdown();
+      retryInterval = setInterval(updateCountdown, 1000);
+    } else {
+      // Vérifie quand même en arrière-plan silencieusement
+      setInterval(()=>checkIfBackOnline(retrySeconds), retrySeconds * 1000);
+    }
+
+    // Thème utilisateur si connecté
+    const rxwTheme = localStorage.getItem('rxw_theme');
+    if(rxwTheme){
+      // Le thème utilisateur ne surcharge PAS la couleur maintenance — on garde la couleur de maintenance
+      // Mais on peut appliquer les bg de fond si souhaité
+    }
+
+  }catch(e){
+    console.error('[maintenance.html]', e);
+  }
+}
+
+loadConfig();
+</script>
+</body>
+</html>

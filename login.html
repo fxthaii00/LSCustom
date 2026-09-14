@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Little Angel — Connexion</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/index.css">
+</head>
+<body>
+<div class="wrap" style="max-width:520px;">
+
+  <header style="border-bottom:none;justify-content:center;text-align:center;">
+    <div>
+      <div class="section-tag" style="justify-content:center;">Accès</div>
+      <h1 class="page-title" id="pageTitle">Créer un <em>compte</em></h1>
+      <p class="page-desc" style="margin:0 auto;">Rejoins l’équipe avec ton nom, ton prénom et un mot de passe sécurisé.</p>
+    </div>
+  </header>
+
+  <div class="table-card auth-card">
+    <form id="authForm" class="auth-form" novalidate>
+      <div class="form-grid">
+        <label class="field field-full">
+          <span id="identifierLabel">Pseudo</span>
+          <input type="text" id="pseudo" name="pseudo" placeholder="Ex : LSCustom_01" autocomplete="username" maxlength="30">
+        </label>
+
+        <label class="field field-full">
+          <span id="passwordLabel">Mot de passe</span>
+          <input type="password" id="password" name="password" placeholder="Votre mot de passe" autocomplete="new-password">
+        </label>
+
+        <label class="field field-full" data-mode="register">
+          <span>Confirmation du mot de passe</span>
+          <input type="password" id="confirmPassword" name="confirmPassword" placeholder="Confirmez votre mot de passe" autocomplete="new-password">
+        </label>
+      </div>
+
+      <label class="check-row" data-mode="register">
+        <input type="checkbox" id="privacyCheck" name="privacyCheck">
+        <span class="checkmark" aria-hidden="true"></span>
+        <span class="check-text">J’accepte la confidentialité</span>
+      </label>
+
+      <label class="check-row" data-mode="register">
+        <input type="checkbox" id="termsCheck" name="termsCheck">
+        <span class="checkmark" aria-hidden="true"></span>
+        <span class="check-text">J’accepte les conditions d’inscription</span>
+      </label>
+
+      <button id="submitBtn" type="submit" class="btn primary" style="width:100%;margin-top:18px;">Créer mon compte</button>
+      <button id="cancelLoginBtn" type="button" class="btn btn-secondary" style="width:100%;margin-top:10px;">Annuler</button>
+
+      <p class="auth-switch">
+        <span id="switchText">Déjà un compte ?</span>
+        <button type="button" id="switchAuthBtn" class="text-link">Se connecter</button>
+      </p>
+
+      <p class="footer-note" id="loginStatus" style="justify-content:center;margin-top:18px;margin-bottom:0;">Crée ton compte pour accéder à ton espace.</p>
+    </form>
+  </div>
+
+</div>
+
+<footer>
+  <div class="ft-copy">
+    <div class="footer-copyright" data-fr="© 2026 SCP Site Phoenix. Tous droits réservés." data-en="© 2026 SCP Site Phoenix. All rights reserved.">
+      © 2026 Little Angel. Tous droits réservés.
+    </div>
+    <div class="footer-credit">
+      <span data-fr="Développé avec" data-en="Developed with">Développé avec</span>
+      <span class="heart" aria-label="amour">❤️</span>
+      <span>
+        <span data-fr="par" data-en="by">par</span>
+        <span class="discord-tag">@FXTHai</span>
+      </span>
+    </div>
+    <div class="footer-vibe-container">
+      <div class="footer-vibe">
+        <span class="vibe-star">✨</span>
+        <span data-fr="Entièrement vibe codé" data-en="Entirely vibe coded">Entièrement vibe codé</span>
+        <span class="vibe-star">✨</span>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script type="module" src="js/login.js"></script>
+</body>
+</html>

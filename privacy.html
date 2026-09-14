@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Confidentialité — LTD RoxWood</title>
+<script>
+(function(){
+  var T={
+    pompe:{bg:'#07070a',bg2:'#0b0b0f',bg3:'#101015',bg4:'#14141a',tx:'#ededf0',tx2:'#52505e',tx3:'#232130',brd:'rgba(255,255,255,0.04)',brd2:'rgba(255,255,255,0.08)',ac:'#8B1F1F',ac2:'#5C0A0A',rgb:'139,31,31',bgRgb:'7,7,10',bg2Rgb:'11,11,15'},
+    foret:{bg:'#060a06',bg2:'#0a0f0a',bg3:'#0f150f',bg4:'#131a13',tx:'#e8f0e8',tx2:'#4a5e4a',tx3:'#1e2e1e',brd:'rgba(255,255,255,0.04)',brd2:'rgba(255,255,255,0.08)',ac:'#2D5A1B',ac2:'#1A3A0E',rgb:'45,90,27',bgRgb:'6,10,6',bg2Rgb:'10,15,10'},
+    soleil:{bg:'#080700',bg2:'#0e0c00',bg3:'#141100',bg4:'#1a1500',tx:'#f5f0e0',tx2:'#5a5020',tx3:'#2a2500',brd:'rgba(255,255,255,0.04)',brd2:'rgba(255,255,255,0.08)',ac:'#C8961E',ac2:'#8A6200',rgb:'200,150,30',bgRgb:'8,7,0',bg2Rgb:'14,12,0'},
+    nuit:{bg:'#05060f',bg2:'#080a14',bg3:'#0c0e1a',bg4:'#101220',tx:'#e8eaf5',tx2:'#42465e',tx3:'#1e2030',brd:'rgba(255,255,255,0.04)',brd2:'rgba(255,255,255,0.08)',ac:'#3B5BDB',ac2:'#1E3A8A',rgb:'59,91,219',bgRgb:'5,6,15',bg2Rgb:'8,10,20'},
+    violet:{bg:'#070510',bg2:'#0b0815',bg3:'#100c1c',bg4:'#140f22',tx:'#ede8f5',tx2:'#524a6a',tx3:'#251e38',brd:'rgba(255,255,255,0.04)',brd2:'rgba(255,255,255,0.08)',ac:'#7C3AED',ac2:'#4C1D95',rgb:'124,58,237',bgRgb:'7,5,16',bg2Rgb:'11,8,21'},
+    carbon:{bg:'#000000',bg2:'#0a0a0a',bg3:'#111111',bg4:'#181818',tx:'#ffffff',tx2:'#666666',tx3:'#333333',brd:'rgba(255,255,255,0.06)',brd2:'rgba(255,255,255,0.10)',ac:'#e0e0e0',ac2:'#888888',rgb:'224,224,224',bgRgb:'0,0,0',bg2Rgb:'10,10,10'},
+    jour:{bg:'#f8f8fa',bg2:'#ffffff',bg3:'#f0f0f4',bg4:'#e8e8ee',tx:'#0a0a0f',tx2:'#555560',tx3:'#aaaabc',brd:'rgba(0,0,0,0.07)',brd2:'rgba(0,0,0,0.12)',ac:'#8B1F1F',ac2:'#5C0A0A',rgb:'139,31,31',bgRgb:'248,248,250',bg2Rgb:'255,255,255'},
+    prairie:{bg:'#f4f7f0',bg2:'#ffffff',bg3:'#eaf0e4',bg4:'#dde8d6',tx:'#0e1a0a',tx2:'#4a6040',tx3:'#8aab80',brd:'rgba(0,0,0,0.07)',brd2:'rgba(0,0,0,0.12)',ac:'#2D5A1B',ac2:'#1A3A0E',rgb:'45,90,27',bgRgb:'244,247,240',bg2Rgb:'255,255,255'},
+    creme:{bg:'#faf6ec',bg2:'#fff9ee',bg3:'#f5eed8',bg4:'#ede4c4',tx:'#1a1500',tx2:'#6a5a20',tx3:'#b09a60',brd:'rgba(0,0,0,0.07)',brd2:'rgba(0,0,0,0.12)',ac:'#C8961E',ac2:'#8A6200',rgb:'200,150,30',bgRgb:'250,246,236',bg2Rgb:'255,249,238'},
+    ardoise:{bg:'#eef0f5',bg2:'#f8f9fc',bg3:'#e4e8f2',bg4:'#d8dced',tx:'#0a0c18',tx2:'#4a5070',tx3:'#9aa0c0',brd:'rgba(0,0,0,0.07)',brd2:'rgba(0,0,0,0.12)',ac:'#3B5BDB',ac2:'#1E3A8A',rgb:'59,91,219',bgRgb:'238,240,245',bg2Rgb:'248,249,252'},
+    neon:{bg:'#010108',bg2:'#030312',bg3:'#06061a',bg4:'#09091f',tx:'#e0e8ff',tx2:'#4050a0',tx3:'#202060',brd:'rgba(100,120,255,0.08)',brd2:'rgba(100,120,255,0.14)',ac:'#00f0ff',ac2:'#0060ff',rgb:'0,240,255',bgRgb:'1,1,8',bg2Rgb:'3,3,18'},
+    ember:{bg:'#0c0500',bg2:'#120800',bg3:'#1a0c00',bg4:'#221000',tx:'#ffeedd',tx2:'#7a4020',tx3:'#3a1a00',brd:'rgba(255,120,0,0.07)',brd2:'rgba(255,120,0,0.13)',ac:'#ff6b00',ac2:'#c04000',rgb:'255,107,0',bgRgb:'12,5,0',bg2Rgb:'18,8,0'}
+  };
+  function applyT(t){
+    if(!t)return;
+    if(t.accent){t.ac=t.ac||t.accent;t.ac2=t.ac2||t.accent2||t.ac;t.rgb=t.rgb||t.accentRgb;}
+    var s=document.documentElement.style;
+    s.setProperty('--bg',t.bg);s.setProperty('--bg2',t.bg2);s.setProperty('--bg3',t.bg3);s.setProperty('--bg4',t.bg4);
+    s.setProperty('--tx',t.tx);s.setProperty('--tx2',t.tx2);s.setProperty('--tx3',t.tx3);
+    s.setProperty('--brd',t.brd);s.setProperty('--brd2',t.brd2);
+    s.setProperty('--ac',t.ac);s.setProperty('--ac2',t.ac2);s.setProperty('--acRgb',t.rgb);
+    s.setProperty('--acD','rgba('+t.rgb+',0.10)');
+    if(t.bgRgb){s.setProperty('--bgRgb',t.bgRgb);s.setProperty('--bg2Rgb',t.bg2Rgb);}
+    document.documentElement.style.background=t.bg;
+  }
+  // 1. Thème perso → immédiat
+  var pid=localStorage.getItem('rxw_theme');
+  if(pid){var pt=T[pid];if(!pt){try{var c=localStorage.getItem('rxw_custom_theme_'+pid);if(c)pt=JSON.parse(c);}catch(e){}}if(pt){applyT(pt);return;}}
+  // 2. Cache global → immédiat si dispo (built-in ou custom)
+  var gid=localStorage.getItem('rxw_global_theme');
+  if(gid){
+    var gt=T[gid]||null;
+    if(!gt){try{var gc=localStorage.getItem('rxw_custom_theme_'+gid);if(gc)gt=JSON.parse(gc);}catch(e){}}
+    if(!gt){try{var gd=localStorage.getItem('rxw_global_theme_data');if(gd)gt=JSON.parse(gd);}catch(e){}}
+    if(gt){applyT(gt);}
+  }
+  // 3. Firestore REST → applique le thème global (corrigé : lit defaultCustomThemeData)
+  document.documentElement.style.visibility='hidden';
+  var to=setTimeout(function(){document.documentElement.style.visibility='';},1200);
+  fetch('https://firestore.googleapis.com/v1/projects/lscustom-5014d/databases/(default)/documents/config/global')
+    .then(function(r){return r.json();})
+    .then(function(d){
+      clearTimeout(to);document.documentElement.style.visibility='';
+      var f=d.fields||{};
+      var tid=f.defaultTheme&&f.defaultTheme.stringValue;
+      if(!tid)return;
+      var t=T[tid]||null;
+      if(!t){
+        var ctd=f.defaultCustomThemeData&&f.defaultCustomThemeData.mapValue&&f.defaultCustomThemeData.mapValue.fields;
+        if(ctd){var obj={};for(var k in ctd){var v=ctd[k];obj[k]=v.stringValue||'';}if(obj.bg||obj.accent)t=obj;}
+      }
+      if(t){
+        localStorage.setItem('rxw_global_theme',tid);
+        if(!T[tid]){localStorage.setItem('rxw_custom_theme_'+tid,JSON.stringify(t));localStorage.setItem('rxw_global_theme_data',JSON.stringify(t));}
+        else{localStorage.removeItem('rxw_global_theme_data');}
+        applyT(t);
+      }
+    })
+    .catch(function(){clearTimeout(to);document.documentElement.style.visibility='';});
+})();
+</script>
+<script type="module" src="theme.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --bg:#07070a;--bg2:#0b0b0f;--bg3:#101015;--bg4:#14141a;--bgRgb:7,7,10;--bg2Rgb:11,11,15;
+  --brd:rgba(255,255,255,0.04);--brd2:rgba(255,255,255,0.08);
+  --tx:#ededf0;--tx2:#52505e;--tx3:#232130;
+  --ac:#d4222a;--ac2:#8a0010;--acD:rgba(212,34,42,0.10);--acRgb:212,34,42;
+  --gold:#c8961e;--ok:#22c55e;
+  --r:8px;--rL:14px;
+  --sb:260px;
+}
+html{scroll-behavior:smooth;}
+body{background:var(--bg);font-family:'Syne',sans-serif;color:var(--tx);overflow-x:hidden;-webkit-font-smoothing:antialiased;}
+
+.aurora{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden;}
+.ab{position:absolute;border-radius:50%;filter:blur(120px);}
+.ab:nth-child(1){width:900px;height:600px;background:radial-gradient(ellipse,rgba(var(--acRgb),.15),transparent 70%);top:-250px;left:-300px;animation:a1 28s ease-in-out infinite;}
+.ab:nth-child(2){width:700px;height:500px;background:radial-gradient(ellipse,rgba(var(--acRgb),.09),transparent 70%);bottom:-200px;right:-200px;animation:a2 34s ease-in-out infinite;}
+@keyframes a1{0%,100%{transform:translate(0,0);}50%{transform:translate(80px,60px);}}
+@keyframes a2{0%,100%{transform:translate(0,0);}50%{transform:translate(-80px,-60px);}}
+
+/* ── SIDEBAR ── */
+#sidebar{position:fixed;top:0;left:0;bottom:0;width:var(--sb);z-index:200;background:rgba(var(--bgRgb),.97);border-right:1px solid var(--brd);backdrop-filter:blur(20px);display:flex;flex-direction:column;transition:transform .3s cubic-bezier(.16,1,.3,1);overflow:hidden;}
+.sb-head{padding:24px 20px 18px;border-bottom:1px solid var(--brd);display:flex;align-items:center;gap:12px;flex-shrink:0;}
+.sb-logo{width:36px;height:36px;object-fit:contain;filter:drop-shadow(0 0 8px rgba(212,34,42,.5));flex-shrink:0;}
+.sb-brand{font-family:'Bebas Neue',sans-serif;font-size:1.1rem;letter-spacing:.14em;color:var(--tx);flex:1;}
+.sb-brand em{color:var(--ac);font-style:normal;}
+.sb-close-btn{width:26px;height:26px;border-radius:6px;border:none;background:rgba(255,255,255,.04);color:var(--tx2);cursor:pointer;display:none;align-items:center;justify-content:center;transition:.2s;flex-shrink:0;}
+.sb-close-btn:hover{background:rgba(212,34,42,.12);color:var(--tx);}
+.sb-close-btn svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
+.sb-nav{flex:1;overflow-y:auto;padding:14px 10px;display:flex;flex-direction:column;gap:2px;}
+.sb-nav::-webkit-scrollbar{width:3px;}
+.sb-nav::-webkit-scrollbar-thumb{background:var(--brd2);border-radius:3px;}
+.sb-label{font-size:.58rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--tx3);padding:14px 10px 6px;}
+.sb-link{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:var(--r);font-size:.82rem;font-weight:700;color:var(--tx2);text-decoration:none;cursor:pointer;border:none;background:none;transition:.15s;letter-spacing:.02em;text-align:left;width:100%;}
+.sb-link svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0;opacity:.6;transition:.15s;}
+.sb-link:hover{color:var(--tx);background:rgba(255,255,255,.04);}
+.sb-link:hover svg{opacity:1;}
+.sb-link.active{color:var(--tx);background:rgba(var(--acRgb),.08);border:1px solid rgba(var(--acRgb),.12);}
+.sb-link.active svg{stroke:var(--ac);opacity:1;}
+.sb-sep{height:1px;background:var(--brd);margin:8px 10px;}
+.sb-role-section{display:none;}
+.sb-user{margin:0 8px 8px;padding:10px 12px;background:rgba(255,255,255,.025);border:1px solid var(--brd);border-radius:10px;display:flex;align-items:center;gap:10px;cursor:pointer;transition:border-color .2s;text-decoration:none;flex-shrink:0;}
+.sb-user:hover{border-color:rgba(212,34,42,.2);}
+.sb-avatar{width:34px;height:34px;border-radius:50%;background:rgba(212,34,42,.12);border:1px solid rgba(212,34,42,.22);display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0;}
+.sb-avatar img{width:100%;height:100%;object-fit:cover;}
+.sb-avatar svg{width:16px;height:16px;stroke:rgba(212,34,42,.7);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
+.sb-user-info{flex:1;min-width:0;}
+.sb-user-name{font-weight:700;font-size:.85rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--tx);}
+.sb-user-role{font-family:'JetBrains Mono',monospace;font-size:.58rem;color:var(--tx2);margin-top:1px;}
+.sb-user-arr svg{width:14px;height:14px;stroke:var(--tx2);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
+
+#sbOverlay{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:190;opacity:0;pointer-events:none;transition:opacity .3s;backdrop-filter:blur(4px);}
+#sbOverlay.open{opacity:1;pointer-events:all;}
+
+#mainWrap{margin-left:var(--sb);transition:margin-left .3s;min-height:100vh;}
+.top-nav{position:fixed;top:0;left:var(--sb);right:0;z-index:100;height:62px;display:flex;align-items:center;padding:0 clamp(16px,3vw,40px);background:rgba(var(--bgRgb),.82);backdrop-filter:blur(18px);border-bottom:1px solid var(--brd);transition:left .3s;}
+.nav-burger{display:none;flex-direction:column;gap:5px;cursor:pointer;padding:6px;border:none;background:none;margin-right:12px;}
+.nav-burger span{display:block;width:20px;height:2px;background:var(--tx2);border-radius:2px;}
+.nav-page-title{font-family:'Bebas Neue',sans-serif;font-size:1rem;letter-spacing:.1em;color:var(--tx2);}
+.nav-page-title em{color:var(--ac);font-style:normal;}
+
+main{position:relative;z-index:1;max-width:760px;margin:0 auto;padding:96px 24px 64px;}
+
+.page-head{margin-bottom:48px;}
+.page-eyebrow{display:inline-flex;align-items:center;gap:8px;background:var(--acD);border:1px solid rgba(var(--acRgb),.18);border-radius:99px;padding:4px 16px;margin-bottom:18px;}
+.eyebrow-dot{width:5px;height:5px;border-radius:50%;background:var(--ac);}
+.eyebrow-txt{font-size:.65rem;font-weight:700;letter-spacing:.14em;color:var(--ac);text-transform:uppercase;}
+.page-title{font-family:'Bebas Neue',sans-serif;font-size:clamp(2.2rem,5vw,3.2rem);letter-spacing:.06em;line-height:1;margin-bottom:8px;}
+.page-title em{color:var(--ac);font-style:normal;}
+.page-date{font-size:.75rem;color:var(--tx3);font-family:'JetBrains Mono',monospace;}
+
+.legal-section{margin-bottom:40px;}
+.legal-section h2{font-family:'Bebas Neue',sans-serif;font-size:1.1rem;letter-spacing:.1em;color:var(--ac);margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid rgba(var(--acRgb),.12);display:flex;align-items:center;gap:10px;}
+.legal-section h2 .num{font-family:'JetBrains Mono',monospace;font-size:.65rem;background:rgba(var(--acRgb),.12);border:1px solid rgba(var(--acRgb),.2);padding:2px 7px;border-radius:4px;color:var(--ac);}
+.legal-section p,.legal-section li{font-size:.88rem;color:rgba(237,237,240,.6);line-height:1.85;margin-bottom:10px;}
+.legal-section ul{padding-left:0;margin-bottom:10px;display:flex;flex-direction:column;gap:6px;}
+.legal-section li{list-style:none;display:flex;align-items:flex-start;gap:8px;}
+.legal-section li::before{content:'';display:block;width:4px;height:4px;border-radius:50%;background:var(--ac);margin-top:8px;flex-shrink:0;}
+.legal-section strong{color:var(--tx);font-weight:700;}
+
+/* Data table */
+.data-table{width:100%;border-collapse:collapse;margin:12px 0;}
+.data-table th{font-family:'JetBrains Mono',monospace;font-size:.6rem;font-weight:600;letter-spacing:.08em;color:var(--tx3);text-align:left;padding:10px 12px;background:rgba(255,255,255,.02);border-bottom:1px solid var(--brd);}
+.data-table td{font-size:.82rem;color:rgba(237,237,240,.6);padding:10px 12px;border-bottom:1px solid var(--brd);}
+.data-table tr:last-child td{border-bottom:none;}
+.data-table td:first-child{font-weight:700;color:var(--tx);}
+
+/* Rights grid */
+.rights-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px;}
+@media(max-width:500px){.rights-grid{grid-template-columns:1fr;}}
+.right-card{background:var(--bg2);border:1px solid var(--brd);border-radius:var(--r);padding:14px;}
+.right-name{font-family:'JetBrains Mono',monospace;font-size:.62rem;font-weight:600;letter-spacing:.08em;color:var(--ok);margin-bottom:6px;}
+.right-desc{font-size:.8rem;color:rgba(237,237,240,.55);line-height:1.65;}
+
+footer{position:relative;z-index:1;text-align:center;padding:24px;border-top:1px solid var(--brd);color:var(--tx3);font-size:.75rem;line-height:2;}
+footer a{color:rgba(var(--acRgb),.6);cursor:pointer;transition:.2s;text-decoration:none;}
+footer a:hover{color:var(--ac);}
+
+@media(max-width:900px){
+  :root{--sb:0px;}
+  #sidebar{transform:translateX(-260px);width:260px;}
+  #sidebar.open{transform:translateX(0);}
+  .sb-close-btn{display:flex!important;}
+  #mainWrap{margin-left:0;}
+  .top-nav{left:0;}
+  .nav-burger{display:flex;}
+}
+</style>
+</head>
+<body>
+<div class="aurora"><div class="ab"></div><div class="ab"></div></div>
+<div id="sbOverlay" onclick="closeSidebar()"></div>
+
+<aside id="sidebar">
+  <div class="sb-head">
+    <img class="sb-logo" src="assets/logo/logoLTD.png" alt="LTD" onerror="this.style.display='none'">
+    <div class="sb-brand">LTD <em>RoxWood</em></div>
+    <button class="sb-close-btn" onclick="closeSidebar()">
+      <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+  </div>
+  <nav class="sb-nav">
+    <div class="sb-label">Supérette</div>
+    <a class="sb-link" href="main.html">
+      <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      Accueil
+    </a>
+    <a class="sb-link" href="tarifs.html">
+      <svg viewBox="0 0 24 24"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+      Catalogue
+    </a>
+    <a class="sb-link" href="abonnement.html">
+      <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+      Abonnement
+    </a>
+    <div class="sb-role-section" id="roleEmploye">
+      <div class="sb-sep"></div>
+      <div class="sb-label">Travail</div>
+      <a class="sb-link" href="employer.html">
+        <svg viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-4 0v2"/></svg>
+        Espace Employé
+      </a>
+    </div>
+    <div class="sb-role-section" id="roleEntreprise">
+      <div class="sb-sep"></div>
+      <div class="sb-label">Entreprise</div>
+      <a class="sb-link" href="employer.html">
+        <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        Gestion Entreprise
+      </a>
+    </div>
+    <div class="sb-role-section" id="roleAdmin">
+      <div class="sb-sep"></div>
+      <div class="sb-label">Admin</div>
+      <a class="sb-link" href="admin.html">
+        <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        Panneau Admin
+      </a>
+    </div>
+    <div class="sb-sep"></div>
+    <div class="sb-label">Légal</div>
+    <a class="sb-link" href="mention.html">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      Mentions légales
+    </a>
+    <a class="sb-link active" href="privacy.html">
+      <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      Confidentialité
+    </a>
+  </nav>
+  <a class="sb-user" id="sbUserCard" href="profil.html" style="display:none;">
+    <div class="sb-avatar" id="sbAvatarWrap">
+      <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+    </div>
+    <div class="sb-user-info">
+      <div class="sb-user-name" id="sbUserName">—</div>
+      <div class="sb-user-role" id="sbUserRole">PROFIL</div>
+    </div>
+    <div class="sb-user-arr"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></div>
+  </a>
+</aside>
+
+<div id="mainWrap">
+  <div class="top-nav">
+    <button class="nav-burger" onclick="openSidebar()"><span></span><span></span><span></span></button>
+    <div class="nav-page-title">Politique de <em>Confidentialité</em></div>
+  </div>
+
+  <main>
+    <div class="page-head">
+      <div class="page-eyebrow"><div class="eyebrow-dot"></div><span class="eyebrow-txt">RGPD & Données</span></div>
+      <h1 class="page-title">Politique de <em>Confidentialité</em></h1>
+      <div class="page-date">Dernière mise à jour : Janvier 2025</div>
+    </div>
+
+    <div class="legal-section">
+      <h2><span class="num">01</span> Introduction</h2>
+      <p>LTD RoxWood, supérette virtuelle sur le serveur FiveM FlashFA, s'engage à protéger la confidentialité des données de ses utilisateurs. La présente politique décrit quelles données sont collectées, pourquoi elles le sont, et comment elles sont traitées.</p>
+      <p>En utilisant ce site et en créant un compte, vous acceptez les termes de cette politique de confidentialité.</p>
+    </div>
+
+    <div class="legal-section">
+      <h2><span class="num">02</span> Données collectées</h2>
+      <p>Dans le cadre du jeu de rôle FlashFA, les données suivantes sont collectées :</p>
+      <table class="data-table">
+        <thead><tr><th>Donnée</th><th>Description</th><th>Obligatoire</th></tr></thead>
+        <tbody>
+          <tr><td>Identifiant</td><td>Numéro unique d'identification FiveM</td><td>Oui</td></tr>
+          <tr><td>Pseudo</td><td>Nom de votre personnage en jeu</td><td>Oui</td></tr>
+          <tr><td>Prénom / Nom</td><td>Identité fictive du personnage</td><td>Oui</td></tr>
+          <tr><td>Mot de passe</td><td>Stocké sous forme chiffrée</td><td>Oui</td></tr>
+          <tr><td>IBAN fictif</td><td>Coordonnées bancaires roleplay</td><td>Non</td></tr>
+          <tr><td>Téléphone fictif</td><td>Numéro de téléphone roleplay</td><td>Non</td></tr>
+          <tr><td>Historique achats</td><td>Ventes effectuées en jeu</td><td>Auto</td></tr>
+          <tr><td>Statut abonnement</td><td>Niveau d'abonnement actif</td><td>Auto</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="legal-section">
+      <h2><span class="num">03</span> Utilisation des données</h2>
+      <p>Les données collectées sont utilisées exclusivement pour les finalités suivantes :</p>
+      <ul>
+        <li>Gestion des comptes utilisateurs et de l'authentification</li>
+        <li>Suivi des transactions et de l'historique des achats roleplay</li>
+        <li>Gestion des abonnements et des avantages associés</li>
+        <li>Administration interne de la supérette (gestion RH, comptabilité)</li>
+        <li>Détection et prévention des abus (comptes bannis)</li>
+      </ul>
+      <p>Aucune donnée n'est utilisée à des fins publicitaires, marketing ou commerciales réelles.</p>
+    </div>
+
+    <div class="legal-section">
+      <h2><span class="num">04</span> Droits utilisateurs</h2>
+      <p>Conformément au RGPD (Règlement UE 2016/679), vous disposez des droits suivants :</p>
+      <div class="rights-grid">
+        <div class="right-card"><div class="right-name">Droit d'accès</div><div class="right-desc">Obtenir une copie de toutes les données vous concernant.</div></div>
+        <div class="right-card"><div class="right-name">Droit de rectification</div><div class="right-desc">Corriger des informations inexactes ou incomplètes.</div></div>
+        <div class="right-card"><div class="right-name">Droit à l'effacement</div><div class="right-desc">Demander la suppression de votre compte et de vos données.</div></div>
+        <div class="right-card"><div class="right-name">Droit d'opposition</div><div class="right-desc">S'opposer au traitement de vos données dans certains cas.</div></div>
+        <div class="right-card"><div class="right-name">Droit à la portabilité</div><div class="right-desc">Recevoir vos données dans un format structuré et lisible.</div></div>
+        <div class="right-card"><div class="right-name">Droit à la limitation</div><div class="right-desc">Restreindre temporairement le traitement de vos données.</div></div>
+      </div>
+      <p style="margin-top:14px;">Pour exercer ces droits, contactez-nous par email à <strong><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="60030f0e14010314200c14044d120f18170f0f044e0612">[email&#160;protected]</a></strong> ou via Discord. Délai de réponse : 30 jours.</p>
+    </div>
+
+    <div class="legal-section">
+      <h2><span class="num">05</span> Cookies et suivi</h2>
+      <p>Ce site utilise uniquement le <strong>localStorage</strong> du navigateur pour maintenir votre session de connexion (identifiant utilisateur). Aucun cookie publicitaire ou de suivi n'est utilisé.</p>
+      <p>Firebase peut déposer des cookies techniques strictement nécessaires à son fonctionnement. Ces cookies ne sont pas partagés avec des tiers à des fins publicitaires.</p>
+      <p>Vous pouvez effacer le stockage local via les paramètres de votre navigateur à tout moment.</p>
+    </div>
+
+    <div class="legal-section">
+      <h2><span class="num">06</span> Contact</h2>
+      <ul>
+        <li>Email : <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="e4878b8a90858790a4889080c9968b9c938b8b80ca8296">[email&#160;protected]</a></li>
+        <li>Discord : LTDRoxWood#0000</li>
+      </ul>
+      <p>Si vous estimez que vos droits ne sont pas respectés, vous avez le droit de déposer une plainte auprès de la <strong>CNIL</strong> : cnil.fr</p>
+    </div>
+
+    <div class="legal-section">
+      <h2><span class="num">07</span> Base légale</h2>
+      <ul>
+        <li><strong>Consentement :</strong> en créant un compte, vous consentez au traitement de vos données</li>
+        <li><strong>Exécution du contrat :</strong> les données sont nécessaires au fonctionnement du service de jeu de rôle</li>
+        <li><strong>Intérêt légitime :</strong> prévention des abus et sécurité de la plateforme</li>
+      </ul>
+      <p>Vos données sont conservées tant que votre compte est actif. En cas de demande de suppression, elles seront effacées dans un délai de 30 jours.</p>
+    </div>
+  </main>
+
+  <footer>
+    <div>© 2025 Premium Deluxe Motorsport. Tous droits réservés.</div>
+    <div>
+      <a href="privacy.html">Politique de confidentialité</a>
+      &nbsp;|&nbsp;
+      <a href="mention.html">Mentions légales</a>
+    </div>
+  </footer>
+</div>
+
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script type="module">
+import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
+import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
+const FB={apiKey:"AIzaSyBA0yD6IqPV_x56BkXEfAG9zAF7wnYt_Zc",authDomain:"lscustom-5014d.firebaseapp.com",projectId:"lscustom-5014d",storageBucket:"lscustom-5014d.firebasestorage.app",messagingSenderId:"810475753399",appId:"1:810475753399:web:5aeb4067f810995a60e232",measurementId:"G-L6ELMX9LQX"};
+const app=getApps().length?getApps()[0]:initializeApp(FB);
+const db=getFirestore(app);
+async function loadUser(){
+  const uid=localStorage.getItem('currentUser');if(!uid)return;
+  try{
+    const snap=await getDoc(doc(db,'users',uid));if(!snap.exists())return;
+    const u=snap.data();
+    document.getElementById('sbUserCard').style.display='flex';
+    document.getElementById('sbUserName').textContent=u.displayName||u.username||uid;
+    const roleArr=[];
+    if(u.isAdmin)roleArr.push('Admin');else if(u.isPatron)roleArr.push('Patron');else if(u.isRH)roleArr.push('RH');else if(u.isEmploye)roleArr.push('Employé');
+    document.getElementById('sbUserRole').textContent=roleArr.join(' · ')||'Membre';
+    if(u.photoURL){document.getElementById('sbAvatarWrap').innerHTML=`<img src="${u.photoURL}" alt="avatar">`;}
+    if(u.isEmploye&&!u.isPatron&&!u.isRH)document.getElementById('roleEmploye').style.display='block';
+    if(u.isPatron||u.isRH)document.getElementById('roleEntreprise').style.display='block';
+    if(u.isAdmin)document.getElementById('roleAdmin').style.display='block';
+  }catch(e){console.error('[privacy] loadUser:', e);}
+}
+loadUser();
+</script>
+
+<!-- SESSION RESTORE tablette -->
+<script>
+(function(){
+  var PAGE=window.location.pathname.split('/').pop()||'index.html';
+  var KEY='rxw_session_'+PAGE;
+  function saveSession(){
+    try{
+      var state={scroll:window.scrollY,ts:Date.now(),inputs:{},activeTab:null};
+      document.querySelectorAll('input[id],input[name],textarea[id],textarea[name],select[id],select[name]').forEach(function(el){
+        var k=el.id||el.name;if(!k)return;
+        if(el.type==='checkbox'||el.type==='radio'){state.inputs[k]=el.checked;}
+        else if(el.type!=='password'&&el.type!=='file'){state.inputs[k]=el.value;}
+      });
+      var activeTab=document.querySelector('[data-tab].active,[data-tab][aria-selected="true"],.tab-btn.active,.nav-tab.active,.panel-tab.active,.section-tab.active');
+      if(activeTab){state.activeTab=activeTab.getAttribute('data-tab')||activeTab.getAttribute('data-panel')||activeTab.dataset.section||null;}
+      localStorage.setItem(KEY,JSON.stringify(state));
+    }catch(e){}
+  }
+  function restoreSession(){
+    try{
+      var raw=localStorage.getItem(KEY);if(!raw)return;
+      var state=JSON.parse(raw);
+      if(Date.now()-state.ts>8*60*60*1000){localStorage.removeItem(KEY);return;}
+      if(state.inputs){
+        Object.keys(state.inputs).forEach(function(k){
+          var el=document.getElementById(k)||document.querySelector('[name="'+k+'"]');
+          if(!el)return;
+          if(el.type==='checkbox'||el.type==='radio'){el.checked=state.inputs[k];}
+          else{el.value=state.inputs[k];el.dispatchEvent(new Event('input',{bubbles:true}));}
+        });
+      }
+      if(state.activeTab){
+        var btn=document.querySelector('[data-tab="'+state.activeTab+'"],[data-panel="'+state.activeTab+'"],[data-section="'+state.activeTab+'"]');
+        if(btn)setTimeout(function(){btn.click();},50);
+      }
+      if(state.scroll>100){
+        requestAnimationFrame(function(){setTimeout(function(){window.scrollTo({top:state.scroll,behavior:'instant'});},150);});
+      }
+    }catch(e){}
+  }
+  document.addEventListener('input',function(e){if(e.target.matches('input,textarea,select'))saveSession();});
+  document.addEventListener('change',function(e){if(e.target.matches('input,textarea,select'))saveSession();});
+  document.addEventListener('click',function(e){if(e.target.closest('[data-tab],[data-panel],[data-section],.tab-btn,.nav-tab,.panel-tab,.section-tab'))setTimeout(saveSession,100);});
+  document.addEventListener('visibilitychange',function(){if(document.visibilityState==='hidden')saveSession();});
+  var _st;window.addEventListener('scroll',function(){clearTimeout(_st);_st=setTimeout(saveSession,400);},{passive:true});
+  window.addEventListener('pagehide',saveSession);
+  window.addEventListener('beforeunload',saveSession);
+  if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',restoreSession);}
+  else{restoreSession();}
+})();
+</script>
+</body>
+</html>
