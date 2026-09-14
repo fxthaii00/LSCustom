@@ -2385,26 +2385,94 @@ window.quickLogin=()=>{
 
 // LOAD USER
 async function loadUser(){
-  const id=localStorage.getItem('currentUser');
-  if(!id){showDenied();return;}
-  try{
-    const s=await getDoc(doc(db,'users',id));
-    if(!s.exists()){console.error('[AUTH] Document introuvable pour ID:',id);showDenied();return;}
-    const u=s.data();
-    if(u.isBanned){showBanned(u.banReason||'Non spécifiée',u.banDetails||'');return;}
-    console.log('[AUTH] Données user:',JSON.stringify(u));
-    if(!(u.isEmployee||u.isEmploye||u.isAdmin||u.isPatron||u.isRH||u.isLivreur)){
-      console.error('[AUTH] Aucun rôle employé trouvé. Champs reçus:',Object.keys(u));
-      showDenied();return;
+  const rawCurrent = localStorage.getItem('currentUser');
+  const sessionRaw = localStorage.getItem('lscustom_session');
+
+  if (!rawCurrent && !sessionRaw) {
+    showDenied();
+    return;
+  }
+
+  try {
+    const localSession = rawCurrent ? JSON.parse(rawCurrent) : JSON.parse(sessionRaw);
+    if (localSession && localSession.status === 'pending') {
+      showDenied();
+      return;
     }
-    uid=id;user=u;init(id,u);
-  }catch(e){console.error('[AUTH] Erreur Firebase:',e.message,e.code);showDenied();}
+
+    if (localSession && (localSession.isEmployee || localSession.isEmploye || localSession.isAdmin || localSession.isPatron || localSession.isRH || localSession.isLivreur)) {
+      const localName = localSession.displayName || localSession.username || localSession.pseudo || 'Employé';
+      uid = localName;
+      user = {
+        ...localSession,
+        displayName: localName,
+        username: localName,
+        isBanned: false
+      };
+      init(localName, user);
+      return;
+    }
+  } catch (error) {
+    console.warn('[AUTH] Session locale invalide:', error);
+  }
+
+  const id = rawCurrent;
+  if (!id) {
+    showDenied();
+    return;
+  }
+
+  try {
+    const s = await getDoc(doc(db,'users',id));
+    if (!s.exists()) {
+      console.error('[AUTH] Document introuvable pour ID:', id);
+      showDenied();
+      return;
+    }
+    const u = s.data();
+    if (u.status === 'pending') {
+      showDenied();
+      return;
+    }
+    if (u.isBanned) {
+      showBanned(u.banReason || 'Non spécifiée', u.banDetails || '');
+      return;
+    }
+    console.log('[AUTH] Données user:', JSON.stringify(u));
+    if (!(u.isEmployee || u.isEmploye || u.isAdmin || u.isPatron || u.isRH || u.isLivreur)) {
+      console.error('[AUTH] Aucun rôle employé trouvé. Champs reçus:', Object.keys(u));
+      showDenied();
+      return;
+    }
+    uid = id;
+    user = u;
+    init(id, u);
+  } catch (e) {
+    console.error('[AUTH] Erreur Firebase:', e.message, e.code);
+    showDenied();
+  }
 }
-function showDenied(){$('accessDenied').style.display='flex';$('workspace').style.display='none';$('bannedScreen').style.display='none';}
+function showDenied(){
+  $('accessDenied').style.display='flex';
+  $('workspace').style.display='none';
+  $('bannedScreen').style.display='none';
+  const sidebar=$('sidebar');
+  const mainNav=$('mainNav');
+  if(sidebar) sidebar.style.display='none';
+  if(mainNav) mainNav.style.display='none';
+  const overlay=$('sbOverlay');
+  if(overlay) overlay.classList.remove('open');
+}
 function showBanned(reason,details){
   $('bannedScreen').style.display='flex';
   $('accessDenied').style.display='none';
   $('workspace').style.display='none';
+  const sidebar=$('sidebar');
+  const mainNav=$('mainNav');
+  if(sidebar) sidebar.style.display='none';
+  if(mainNav) mainNav.style.display='none';
+  const overlay=$('sbOverlay');
+  if(overlay) overlay.classList.remove('open');
   $('banReasonText').textContent=reason||'Non spécifiée';
   const det=$('banDetailsText');
   if(details){det.textContent=details;det.style.display='block';}else{det.style.display='none';}
@@ -3666,6 +3734,7 @@ function initDevTab(u){
 // ── ENTREPRISES LOCAL STORAGE ──
 const ENT_KEY='ltd_entreprises_v2';
 let entreprises=[];
+let _entOpen=null;
 function loadEntreprises(){
   try{entreprises=JSON.parse(localStorage.getItem(ENT_KEY)||'[]');}catch{entreprises=[];}
   renderEntreprises();
@@ -3696,36 +3765,75 @@ function renderEntreprises(){
     return;
   }
   tbody.innerHTML=entreprises.map((e,i)=>{
+    const isOpen=_entOpen===i;
     const px=parseFloat(e.prixUnite)||0;
     const repJour=parseInt(e.repasJour)||1;
     const produits=(e.produits||['—']).join(', ');
     const repDonnes=parseInt(e.repasDonnes)||0;
     const total=px*repDonnes;
     const tagBadge=e.role?`<span style="font-size:.6rem;background:rgba(var(--acRgb),.1);border:1px solid rgba(var(--acRgb),.2);color:var(--ac);padding:2px 8px;border-radius:4px;font-weight:700;font-family:'Syne',sans-serif;">${escHtml(e.role)}</span>`:`<span style="color:var(--tx3);font-size:.68rem;">—</span>`;
-    return `<tr>
-      <td><div class="ent-nom">${escHtml(e.nom||'—')}</div></td>
-      <td>${tagBadge}</td>
-      <td class="ent-produits">${escHtml(produits)}</td>
-      <td class="ent-prix">$${px.toFixed(0)}</td>
-      <td class="ent-prix" style="color:var(--info);">${repJour}</td>
-      <td><input class="ent-repas-input" type="number" min="0" value="${repDonnes}" onchange="updateRepasDonnes(${i},this.value)" title="Menus donnés total"></td>
-      <td class="ent-total-cell" style="color:var(--ok);font-family:'JetBrains Mono',monospace;font-weight:700;">$${total.toFixed(0)}</td>
-      <td style="text-align:center;">
-        <div style="display:flex;gap:4px;justify-content:center;">
-          <button onclick="editEnt(${i})" style="width:26px;height:26px;border-radius:5px;border:1px solid var(--brd2);background:var(--bg3);color:var(--info);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.13s;" title="Modifier">
-            <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4z"/></svg>
-          </button>
-          <button onclick="resetEntRepas(${i})" style="width:26px;height:26px;border-radius:5px;border:1px solid rgba(245,158,11,.2);background:rgba(245,158,11,.06);color:var(--warn);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.13s;" title="Reset menus donnés">
-            <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
-          </button>
-          <button onclick="deleteEnt(${i})" style="width:26px;height:26px;border-radius:5px;border:1px solid rgba(239,68,68,.2);background:rgba(239,68,68,.06);color:#ef4444;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.13s;" title="Supprimer">
-            <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/></svg>
-          </button>
+    const empList=allEmployes.filter(emp=>(emp.entrepriseRole&&(emp.entrepriseRole===e.role||emp.entrepriseRole===e.nom))||(emp.entreprise&&(emp.entreprise===e.nom||emp.entreprise===e.role)));
+    const membersRow=isOpen?`<tr>
+      <td colspan="8" style="padding:0;border-top:1px solid var(--brd);background:var(--bg3);">
+        <div style="padding:10px 14px 12px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px;">
+            <div style="font-size:.62rem;font-weight:700;color:var(--tx3);letter-spacing:.08em;text-transform:uppercase;">Membres ${empList.length}</div>
+            <span style="font-size:.66rem;color:var(--tx2);">${empList.length===0?'Aucun employé lié':'Liés à cette entreprise'}</span>
+          </div>
+          ${empList.length===0?`<div style="font-size:.72rem;color:var(--tx3);padding:6px 0;">Aucun employé lié à cette entreprise.</div>`:empList.map(emp=>{
+            const nom=emp.displayName||emp.username||emp.id;
+            const parts=nom.split(' ');
+            const prenom=parts[0]||'';
+            const surname=parts.slice(1).join(' ')||'';
+            return `<div style="display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--brd);">
+              <div style="display:flex;align-items:center;gap:8px;">
+                <div style="width:28px;height:28px;border-radius:50%;background:rgba(var(--acRgb),.1);border:1px solid rgba(var(--acRgb),.15);display:flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:700;color:var(--ac);">${(prenom[0]||'?').toUpperCase()}</div>
+                <div>
+                  <div style="font-size:.78rem;font-weight:700;color:var(--tx);">${escHtml(prenom)}</div>
+                  <div style="font-size:.65rem;color:var(--tx2);">${escHtml(surname)}</div>
+                </div>
+              </div>
+              <span style="font-size:.62rem;color:var(--tx3);background:var(--bg2);border:1px solid var(--brd2);padding:3px 7px;border-radius:4px;">${escHtml(emp.role||'Employé')}</span>
+            </div>`;
+          }).join('')}
         </div>
       </td>
-    </tr>`;
+    </tr>`:'';
+    return `
+      <tr>
+        <td><div onclick="toggleEnt(${i})" style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+          <span class="ent-nom">${escHtml(e.nom||'—')}</span>
+          <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="var(--tx3)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="transition:transform .2s;${isOpen?'transform:rotate(180deg)':''}"><polyline points="6 9 12 15 18 9"/></svg>
+        </div></td>
+        <td>${tagBadge}</td>
+        <td class="ent-produits">${escHtml(produits)}</td>
+        <td class="ent-prix">$${px.toFixed(0)}</td>
+        <td class="ent-prix" style="color:var(--info);">${repJour}</td>
+        <td><input class="ent-repas-input" type="number" min="0" value="${repDonnes}" onchange="updateRepasDonnes(${i},this.value)" title="Menus donnés total"></td>
+        <td class="ent-total-cell" style="color:var(--ok);font-family:'JetBrains Mono',monospace;font-weight:700;">$${total.toFixed(0)}</td>
+        <td style="text-align:center;">
+          <div style="display:flex;gap:4px;justify-content:center;">
+            <button onclick="editEnt(${i})" style="width:26px;height:26px;border-radius:5px;border:1px solid var(--brd2);background:var(--bg3);color:var(--info);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.13s;" title="Modifier">
+              <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4z"/></svg>
+            </button>
+            <button onclick="resetEntRepas(${i})" style="width:26px;height:26px;border-radius:5px;border:1px solid rgba(245,158,11,.2);background:rgba(245,158,11,.06);color:var(--warn);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.13s;" title="Reset menus donnés">
+              <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+            </button>
+            <button onclick="deleteEnt(${i})" style="width:26px;height:26px;border-radius:5px;border:1px solid rgba(239,68,68,.2);background:rgba(239,68,68,.06);color:#ef4444;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.13s;" title="Supprimer">
+              <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/></svg>
+            </button>
+          </div>
+        </td>
+      </tr>
+      ${membersRow}
+    `;
   }).join('');
 }
+
+window.toggleEnt=function(i){
+  _entOpen=_entOpen===i?null:i;
+  renderEntreprises();
+};
 
 window.updateRepasDonnes=function(i,val){
   if(!entreprises[i])return;
@@ -4131,16 +4239,16 @@ function renderRHEntreprises(){
         const parts=nom.split(' ');
         const prenom=parts[0]||'';const surname=parts.slice(1).join(' ')||'';
         const safeId=emp.id.replace(/'/g,"\\'");
-        return`<div style="display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--brd);">
-          <div style="display:flex;align-items:center;gap:8px;">
+        return`<div style="display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--brd);gap:10px;">
+          <div style="display:flex;align-items:center;gap:8px;flex:1;min-width:0;">
             <div style="width:26px;height:26px;border-radius:50%;background:rgba(var(--acRgb),.1);border:1px solid rgba(var(--acRgb),.15);display:flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:700;color:var(--ac);">${(prenom[0]||'?').toUpperCase()}</div>
-            <div>
-              <div style="font-size:.78rem;font-weight:700;color:var(--tx);">${escHtml(prenom)}</div>
-              <div style="font-size:.65rem;color:var(--tx2);">${escHtml(surname)}</div>
+            <div style="min-width:0;">
+              <div style="font-size:.78rem;font-weight:700;color:var(--tx);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escHtml(prenom)}</div>
+              <div style="font-size:.65rem;color:var(--tx2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escHtml(surname)}</div>
             </div>
           </div>
-          <button onclick="retirerEmpEntreprise('${safeId}','${i}')" style="display:flex;align-items:center;gap:4px;padding:3px 10px;border-radius:5px;border:1px solid rgba(239,68,68,.2);background:rgba(239,68,68,.06);color:#ef4444;font-family:'Syne',sans-serif;font-size:.66rem;font-weight:700;cursor:pointer;transition:.13s;">
-            <svg viewBox="0 0 24 24" width="9" height="9" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>Retirer
+          <button onclick="retirerEmpEntreprise('${safeId}','${i}')" style="display:flex;align-items:center;gap:4px;padding:3px 10px;border-radius:5px;border:1px solid rgba(239,68,68,.2);background:rgba(239,68,68,.06);color:#ef4444;font-family:'Syne',sans-serif;font-size:.66rem;font-weight:700;cursor:pointer;transition:.13s;flex-shrink:0;">
+            <svg viewBox="0 0 24 24" width="9" height="9" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>Supprimer
           </button>
         </div>`;
       }).join('')}

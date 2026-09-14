@@ -707,7 +707,11 @@ const FB={apiKey:"AIzaSyBA0yD6IqPV_x56BkXEfAG9zAF7wnYt_Zc",authDomain:"lscustom-
 const app=initializeApp(FB);
 const db=getFirestore(app);
 
-const uid=localStorage.getItem('currentUser');
+const sessionRaw = localStorage.getItem('lscustom_session');
+const sessionObj = sessionRaw ? JSON.parse(sessionRaw) : null;
+const currentUserRaw = localStorage.getItem('currentUser');
+const currentUserObj = currentUserRaw ? JSON.parse(currentUserRaw) : null;
+const uid = (currentUserObj && (currentUserObj.uid || currentUserObj.pseudo)) || (sessionObj && (sessionObj.uid || sessionObj.pseudo)) || null;
 
 // ── SIDEBAR ──
 // ── HELPER : évite les "Cannot set properties of null" ──
@@ -725,7 +729,7 @@ window.switchDashTab=function(tabId,btnEl){
 
 window.openSidebar=()=>{document.getElementById('sidebar').classList.add('open');document.getElementById('sbOverlay').classList.add('open');};
 window.closeSidebar=()=>{document.getElementById('sidebar').classList.remove('open');document.getElementById('sbOverlay').classList.remove('open');};
-window.doLogout=()=>{localStorage.removeItem('currentUser');window.location.href='index.html';};
+window.doLogout=()=>{localStorage.removeItem('currentUser');localStorage.removeItem('lscustom_session');window.location.href='login.html';};
 
 function updateSidebarProfile(uid,u){
   const card=document.getElementById('sbProfileCard');
@@ -814,7 +818,8 @@ async function loadDashboard(){
         localStorage.removeItem('currentUser');
       } else {
         localStorage.removeItem('currentUser');
-        window.location.href='index.html';
+        localStorage.removeItem('lscustom_session');
+        window.location.href='login.html';
       }
       return;
     }

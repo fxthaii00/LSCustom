@@ -2,14 +2,12 @@ import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/fireba
 import {
   getFirestore,
   collection,
-  addDoc,
-  getDocs,
   query,
   where,
-  serverTimestamp
+  getDocs,
+  addDoc
 } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 
-const STORAGE_KEY = 'littleAngelAuthUsers';
 const firebaseConfig = {
   apiKey: 'AIzaSyBA0yD6IqPV_x56BkXEfAG9zAF7wnYt_Zc',
   authDomain: 'lscustom-5014d.firebaseapp.com',
@@ -23,284 +21,394 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
+const STORAGE_KEY = 'lscustom_users';
+const SESSION_KEY = 'lscustom_session';
 const authForm = document.getElementById('authForm');
+const pseudoInput = document.getElementById('pseudo');
+const passwordInput = document.getElementById('password');
+const confirmPasswordInput = document.getElementById('confirmPassword');
+const submitBtn = document.getElementById('submitBtn');
+const cancelLoginBtn = document.getElementById('cancelLoginBtn');
 const switchAuthBtn = document.getElementById('switchAuthBtn');
 const switchText = document.getElementById('switchText');
-const submitBtn = document.getElementById('submitBtn');
 const pageTitle = document.getElementById('pageTitle');
-const statusBox = document.getElementById('loginStatus');
-const cancelBtn = document.getElementById('cancelLoginBtn');
-const passwordLabel = document.getElementById('passwordLabel');
 const identifierLabel = document.getElementById('identifierLabel');
+const loginStatus = document.getElementById('loginStatus');
+const privacyCheck = document.getElementById('privacyCheck');
+const termsCheck = document.getElementById('termsCheck');
+const modeRegister = [...document.querySelectorAll('[data-mode="register"]')];
 
-let authMode = 'register';
+let isRegisterMode = true;
 
-function setAuthMode(mode) {
-  authMode = mode;
-  const isRegister = mode === 'register';
+function getUsers() {
+  const raw = localStorage.getItem(STORAGE_KEY);
+  if (!raw) return [];
 
-  document.querySelectorAll('[data-mode="register"]').forEach((element) => {
-    element.classList.toggle('hidden-by-mode', !isRegister);
-  });
-
-  pageTitle.innerHTML = isRegister ? 'Créer un <em>compte</em>' : 'Se <em>connecter</em>';
-  submitBtn.textContent = isRegister ? 'Créer mon compte' : 'Se connecter';
-  switchText.textContent = isRegister ? 'Déjà un compte ?' : 'Pas encore de compte ?';
-  switchAuthBtn.textContent = isRegister ? 'Se connecter' : 'Créer un compte';
-  passwordLabel.textContent = 'Mot de passe';
-  identifierLabel.textContent = 'Pseudo';
-
-  const primaryText = isRegister
-    ? 'Crée ton compte pour accéder à ton espace.'
-    : 'Renseigne ton pseudo et ton mot de passe pour te connecter.';
-
-  if (statusBox) {
-    statusBox.textContent = primaryText;
-  }
-}
-
-function getStoredUsers() {
   try {
-    const raw = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
-    return Array.isArray(raw) ? raw.map((user) => ({
-      pseudo: String(user.pseudo || user.username || user.nom || user.prenom || user.numero || '').trim(),
-      password: String(user.password || ''),
-      numero: user.numero || '',
-      nom: user.nom || '',
-      prenom: user.prenom || ''
-    })).filter((user) => user.pseudo || user.password) : [];
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : [];
   } catch (error) {
+    console.error('Erreur lecture utilisateurs locale:', error);
     return [];
   }
 }
 
-function syncLocalUsers(users) {
+function saveUsers(users) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(users));
 }
 
-function isPermissionError(error) {
-  const message = String(error?.message || '').toLowerCase();
-  return error?.code === 'permission-denied' || message.includes('permission') || message.includes('insufficient permissions');
+function setStatus(message, isError = false) {
+  loginStatus.textContent = message;
+  loginStatus.style.color = isError ? '#ff7a7a' : '#d9d9df';
 }
 
-async function saveUserToFirebase(user) {
-  const usersRef = collection(db, 'users');
-  const sanitizedPseudo = String(user.pseudo || '').trim();
-
-  try {
-    const existing = await getDocs(query(usersRef, where('pseudoLower', '==', sanitizedPseudo.toLowerCase())));
-    if (!existing.empty) {
-      throw new Error('Ce pseudo est déjà utilisé.');
-    }
-
-    const userToSave = {
-      pseudo: sanitizedPseudo,
-      pseudoLower: sanitizedPseudo.toLowerCase(),
-      password: String(user.password || ''),
-      createdAt: serverTimestamp(),
-      updatedAt: serverTimestamp()
-    };
-
-    const ref = await addDoc(usersRef, userToSave);
-    const localUsers = getStoredUsers();
-    const exists = localUsers.some((item) => String(item.pseudo || '').trim().toLowerCase() === sanitizedPseudo.toLowerCase());
-
-    if (!exists) {
-      localUsers.push({
-        pseudo: sanitizedPseudo,
-        password: String(user.password || ''),
-        id: ref.id
-      });
-      syncLocalUsers(localUsers);
-    }
-
-    return ref;
-  } catch (error) {
-    if (isPermissionError(error)) {
-      const localUsers = getStoredUsers();
-      const exists = localUsers.some((item) => String(item.pseudo || '').trim().toLowerCase() === sanitizedPseudo.toLowerCase());
-
-      if (!exists) {
-        localUsers.push({
-          pseudo: sanitizedPseudo,
-          password: String(user.password || ''),
-          id: `local-${Date.now()}`
-        });
-        syncLocalUsers(localUsers);
-      }
-
-      return { id: `local-${Date.now()}` };
-    }
-
-    throw error;
-  }
-}
-
-async function findUserInFirebase(pseudo, password) {
-  const normalizedPseudo = String(pseudo || '').trim().toLowerCase();
-  const localUsers = getStoredUsers();
-  const localUser = localUsers.find((item) => String(item.pseudo || '').trim().toLowerCase() === normalizedPseudo && String(item.password || '') === String(password || ''));
-  if (localUser) {
-    return {
-      id: localUser.id || 'local',
-      pseudo: localUser.pseudo,
-      password: localUser.password
-    };
+function persistSession(user) {
+  if (user && user.status === 'pending') {
+    localStorage.removeItem(SESSION_KEY);
+    localStorage.removeItem('currentUser');
+    return;
   }
 
-  try {
-    const usersRef = collection(db, 'users');
-    const snapshot = await getDocs(query(usersRef, where('pseudoLower', '==', normalizedPseudo)));
-
-    if (snapshot.empty) {
-      return null;
-    }
-
-    const userDoc = snapshot.docs[0];
-    const user = userDoc.data();
-
-    if (String(user.password || '') !== String(password || '')) {
-      return null;
-    }
-
-    const firebaseUser = { id: userDoc.id, ...user };
-    const fallbackUsers = getStoredUsers();
-    const exists = fallbackUsers.some((item) => String(item.pseudo || '').trim().toLowerCase() === normalizedPseudo);
-    if (!exists) {
-      fallbackUsers.push({ pseudo: firebaseUser.pseudo, password: firebaseUser.password, id: firebaseUser.id });
-      syncLocalUsers(fallbackUsers);
-    }
-
-    return firebaseUser;
-  } catch (error) {
-    if (isPermissionError(error)) {
-      return localUser || null;
-    }
-
-    throw error;
-  }
-}
-
-function showStatus(message, isError = false) {
-  if (!statusBox) return;
-  statusBox.textContent = message;
-  statusBox.style.color = isError ? 'var(--ac)' : 'var(--tx2)';
-}
-
-function validateRegisterForm(data) {
-  if (!data.pseudo || !data.password || !data.confirmPassword) {
-    return 'Le pseudo et le mot de passe sont obligatoires.';
-  }
-
-  if (data.pseudo.length < 3) {
-    return 'Le pseudo doit contenir au moins 3 caractères.';
-  }
-
-  if (data.password.length < 6) {
-    return 'Le mot de passe doit contenir au moins 6 caractères.';
-  }
-
-  if (data.password !== data.confirmPassword) {
-    return 'La confirmation du mot de passe ne correspond pas.';
-  }
-
-  if (!document.getElementById('privacyCheck')?.checked) {
-    return 'Tu dois accepter la confidentialité.';
-  }
-
-  if (!document.getElementById('termsCheck')?.checked) {
-    return 'Tu dois accepter les conditions d’inscription.';
-  }
-
-  return '';
-}
-
-async function handleRegister(event) {
-  event.preventDefault();
-
-  const pseudo = document.getElementById('pseudo')?.value.trim() || '';
-  const formData = {
-    pseudo,
-    password: document.getElementById('password')?.value || '',
-    confirmPassword: document.getElementById('confirmPassword')?.value || ''
+  const roleFlags = {
+    isEmployee: !!user.isEmployee || false,
+    isEmploye: !!user.isEmploye || false,
+    isAdmin: !!user.isAdmin || false,
+    isPatron: !!user.isPatron || false,
+    isRH: !!user.isRH || false,
+    isLivreur: !!user.isLivreur || false
   };
 
-  const error = validateRegisterForm(formData);
-  if (error) {
-    showStatus(error, true);
-    return;
+  const payload = {
+    uid: user.id || user.pseudo,
+    pseudo: user.pseudo,
+    username: user.pseudo,
+    displayName: user.pseudo,
+    status: user.status || 'approved',
+    ...roleFlags,
+    loggedInAt: Date.now()
+  };
+
+  localStorage.setItem(SESSION_KEY, JSON.stringify(payload));
+  localStorage.setItem('currentUser', JSON.stringify(payload));
+}
+
+function updateMode() {
+  const isLogin = !isRegisterMode;
+
+  pageTitle.innerHTML = isLogin
+    ? 'Se connecter à ton <em>espace</em>'
+    : 'Créer un <em>compte</em>';
+
+  identifierLabel.textContent = isLogin ? 'Pseudo ou email' : 'Pseudo';
+  submitBtn.textContent = isLogin ? 'Me connecter' : 'Créer mon compte';
+  switchText.textContent = isLogin ? 'Pas encore de compte ?' : 'Déjà un compte ?';
+  switchAuthBtn.textContent = isLogin ? 'Créer un compte' : 'Se connecter';
+
+  modeRegister.forEach((el) => {
+    el.style.display = isLogin ? 'none' : '';
+  });
+
+  if (isLogin) {
+    confirmPasswordInput.value = '';
+    privacyCheck.checked = false;
+    termsCheck.checked = false;
   }
 
-  try {
-    await saveUserToFirebase({
-      pseudo: formData.pseudo,
-      password: formData.password
-    });
+  setStatus(
+    isLogin
+      ? 'Connecte-toi pour accéder à ton espace.'
+      : 'Crée ton compte pour accéder à ton espace.'
+  );
 
-    showStatus('Compte créé avec succès. Tu peux maintenant te connecter.');
-    setAuthMode('login');
-    authForm.reset();
-    document.getElementById('pseudo').focus();
-  } catch (fireError) {
-    showStatus(fireError.message || 'Erreur lors de la création du compte.', true);
+  if (confirmPasswordInput) {
+    confirmPasswordInput.required = !isLogin;
   }
 }
 
-async function handleLogin(event) {
-  event.preventDefault();
+function sanitizeValue(value) {
+  return String(value || '').trim();
+}
 
-  const pseudo = document.getElementById('pseudo')?.value.trim() || '';
-  const password = document.getElementById('password')?.value || '';
+function validateRegisterForm() {
+  const pseudo = sanitizeValue(pseudoInput.value);
+  const password = sanitizeValue(passwordInput.value);
+  const confirmPassword = sanitizeValue(confirmPasswordInput.value);
 
   if (!pseudo || !password) {
-    showStatus('Le pseudo et le mot de passe sont obligatoires.', true);
+    setStatus('Remplis ton pseudo et ton mot de passe.', true);
+    return false;
+  }
+
+  if (pseudo.length < 3) {
+    setStatus('Le pseudo doit contenir au moins 3 caractères.', true);
+    return false;
+  }
+
+  if (password.length < 6) {
+    setStatus('Le mot de passe doit contenir au moins 6 caractères.', true);
+    return false;
+  }
+
+  if (password !== confirmPassword) {
+    setStatus('Les mots de passe ne correspondent pas.', true);
+    return false;
+  }
+
+  if (!privacyCheck.checked || !termsCheck.checked) {
+    setStatus('Tu dois accepter la confidentialité et les conditions.', true);
+    return false;
+  }
+
+  return true;
+}
+
+function validateLoginForm() {
+  const pseudo = sanitizeValue(pseudoInput.value);
+  const password = sanitizeValue(passwordInput.value);
+
+  if (!pseudo || !password) {
+    setStatus('Saisis ton pseudo et ton mot de passe.', true);
+    return false;
+  }
+
+  return true;
+}
+
+async function getUserFromDb(pseudo) {
+  const normalizedPseudo = pseudo.toLowerCase();
+  const q = query(collection(db, 'users'), where('pseudo', '==', normalizedPseudo));
+  const snapshot = await getDocs(q);
+
+  if (snapshot.empty) {
+    return null;
+  }
+
+  const first = snapshot.docs[0];
+  return { id: first.id, ...first.data() };
+}
+
+async function saveUserInDb(user) {
+  await addDoc(collection(db, 'users'), {
+    pseudo: user.pseudo.toLowerCase(),
+    password: user.password,
+    displayName: user.pseudo,
+    username: user.pseudo,
+    status: 'pending',
+    isEmployee: false,
+    isEmploye: false,
+    isAdmin: false,
+    isPatron: false,
+    isRH: false,
+    isLivreur: false,
+    createdAt: new Date().toISOString()
+  });
+}
+
+async function handleRegister() {
+  if (!validateRegisterForm()) {
     return;
   }
 
-  try {
-    const user = await findUserInFirebase(pseudo, password);
+  const pseudo = sanitizeValue(pseudoInput.value);
+  const password = sanitizeValue(passwordInput.value);
+  submitBtn.disabled = true;
+  submitBtn.textContent = 'Création...';
 
-    if (!user) {
-      showStatus('Pseudo ou mot de passe incorrect.', true);
+  try {
+    const existingUser = await getUserFromDb(pseudo);
+    if (existingUser) {
+      setStatus('Ce pseudo est déjà utilisé. Choisis un autre nom.', true);
       return;
     }
 
-    localStorage.setItem('littleAngelSession', JSON.stringify({
-      approved: true,
-      pseudo: user.pseudo,
-      uid: user.id
-    }));
+    const newUser = {
+      id: Date.now(),
+      pseudo,
+      password,
+      displayName: pseudo,
+      username: pseudo,
+      status: 'pending',
+      isEmployee: false,
+      isEmploye: false,
+      isAdmin: false,
+      isPatron: false,
+      isRH: false,
+      isLivreur: false,
+      createdAt: new Date().toISOString()
+    };
 
-    showStatus(`Bienvenue ${user.pseudo} ! Redirection...`);
-    window.location.href = 'index.html';
-  } catch (fireError) {
-    showStatus(fireError.message || 'Erreur de connexion.', true);
+    await saveUserInDb(newUser);
+
+    const users = getUsers();
+    users.push({
+      id: newUser.id,
+      pseudo: newUser.pseudo,
+      password: newUser.password,
+      displayName: newUser.displayName,
+      username: newUser.username,
+      status: 'pending',
+      isEmployee: false,
+      isEmploye: false,
+      isAdmin: false,
+      isPatron: false,
+      isRH: false,
+      isLivreur: false,
+      createdAt: newUser.createdAt
+    });
+    saveUsers(users);
+
+    localStorage.removeItem(SESSION_KEY);
+    localStorage.removeItem('currentUser');
+    setStatus(`Compte créé avec succès. Votre compte est en attente de validation par le patron ou le RH.`);
+
+    pseudoInput.value = '';
+    passwordInput.value = '';
+    confirmPasswordInput.value = '';
+    privacyCheck.checked = false;
+    termsCheck.checked = false;
+
+    isRegisterMode = false;
+    updateMode();
+  } catch (error) {
+    console.error('Erreur Firebase inscription:', error);
+
+    const users = getUsers();
+    const alreadyExists = users.some((user) => user.pseudo.toLowerCase() === pseudo.toLowerCase());
+    if (alreadyExists) {
+      setStatus('Ce pseudo est déjà utilisé. Choisis un autre nom.', true);
+      return;
+    }
+
+    const fallbackUser = {
+      id: Date.now(),
+      pseudo,
+      password,
+      displayName: pseudo,
+      username: pseudo,
+      status: 'pending',
+      isEmployee: false,
+      isEmploye: false,
+      isAdmin: false,
+      isPatron: false,
+      isRH: false,
+      isLivreur: false,
+      createdAt: new Date().toISOString()
+    };
+    users.push(fallbackUser);
+    saveUsers(users);
+    localStorage.removeItem(SESSION_KEY);
+    localStorage.removeItem('currentUser');
+    setStatus(`Compte créé localement. Votre compte est en attente de validation par le patron ou le RH.`);
+    isRegisterMode = false;
+    updateMode();
+  } finally {
+    submitBtn.disabled = false;
+    submitBtn.textContent = isRegisterMode ? 'Créer mon compte' : 'Me connecter';
   }
 }
 
-switchAuthBtn?.addEventListener('click', () => {
-  const nextMode = authMode === 'register' ? 'login' : 'register';
-  setAuthMode(nextMode);
-});
-
-authForm?.addEventListener('submit', (event) => {
-  if (authMode === 'register') {
-    handleRegister(event);
-  } else {
-    handleLogin(event);
-  }
-});
-
-cancelBtn?.addEventListener('click', () => {
-  window.location.href = 'index.html';
-});
-
-window.addEventListener('DOMContentLoaded', () => {
-  const saved = JSON.parse(localStorage.getItem('littleAngelSession') || 'null');
-  if (saved && saved.approved) {
-    window.location.href = 'index.html';
+async function handleLogin() {
+  if (!validateLoginForm()) {
     return;
   }
 
-  setAuthMode('register');
+  const pseudo = sanitizeValue(pseudoInput.value);
+  const password = sanitizeValue(passwordInput.value);
+  submitBtn.disabled = true;
+  submitBtn.textContent = 'Connexion...';
+
+  try {
+    const userFromDb = await getUserFromDb(pseudo);
+    const isValid = userFromDb && userFromDb.password === password;
+
+    if (userFromDb && userFromDb.status === 'pending') {
+      localStorage.removeItem(SESSION_KEY);
+      localStorage.removeItem('currentUser');
+      setStatus('Compte en attente de validation par le patron ou le RH.', true);
+      return;
+    }
+
+    if (!isValid) {
+      const localUsers = getUsers();
+      const localUser = localUsers.find(
+        (account) => account.pseudo.toLowerCase() === pseudo.toLowerCase() && account.password === password
+      );
+
+      if (!localUser) {
+        setStatus('Identifiants incorrects. Vérifie ton pseudo et ton mot de passe.', true);
+        return;
+      }
+
+      if (localUser.status === 'pending') {
+        localStorage.removeItem(SESSION_KEY);
+        localStorage.removeItem('currentUser');
+        setStatus('Compte en attente de validation par le patron ou le RH.', true);
+        return;
+      }
+
+      persistSession(localUser);
+      setStatus(`Connexion réussie. Bienvenue ${localUser.pseudo} !`);
+      window.location.href = 'Employer.html';
+      return;
+    }
+
+    persistSession(userFromDb);
+    setStatus(`Connexion réussie. Bienvenue ${userFromDb.pseudo} !`);
+    window.location.href = 'Employer.html';
+  } catch (error) {
+    console.error('Erreur Firebase connexion:', error);
+    const localUsers = getUsers();
+    const localUser = localUsers.find(
+      (account) => account.pseudo.toLowerCase() === pseudo.toLowerCase() && account.password === password
+    );
+
+    if (!localUser) {
+      setStatus('Identifiants incorrects. Vérifie ton pseudo et ton mot de passe.', true);
+      return;
+    }
+
+    persistSession(localUser);
+    setStatus(`Connexion réussie. Bienvenue ${localUser.pseudo} !`);
+    window.location.href = 'Employer.html';
+  } finally {
+    submitBtn.disabled = false;
+    submitBtn.textContent = isRegisterMode ? 'Créer mon compte' : 'Me connecter';
+  }
+}
+
+async function handleSubmit(event) {
+  event.preventDefault();
+
+  if (isRegisterMode) {
+    await handleRegister();
+    return;
+  }
+
+  await handleLogin();
+}
+
+switchAuthBtn.addEventListener('click', () => {
+  isRegisterMode = !isRegisterMode;
+  updateMode();
+  pseudoInput.focus();
 });
+
+cancelLoginBtn.addEventListener('click', () => {
+  authForm.reset();
+  setStatus(isRegisterMode ? 'Crée ton compte pour accéder à ton espace.' : 'Connecte-toi pour accéder à ton espace.');
+});
+
+authForm.addEventListener('submit', handleSubmit);
+updateMode();
+
+const currentSession = localStorage.getItem(SESSION_KEY);
+if (currentSession) {
+  try {
+    const session = JSON.parse(currentSession);
+    if (session && session.pseudo) {
+      setStatus(`Tu es déjà connecté en tant que ${session.pseudo}.`);
+    }
+  } catch (error) {
+    console.error('Erreur lecture session:', error);
+  }
+}
